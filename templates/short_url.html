@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+    <title>URL Shortener</title>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Shortened URL</h1>
+
+        <p>Your shortened URL: <a href="{{ short_link }}">{{ short_link }}</a></p>
+
+        <p>Original URL: {{ original_url }}</p>
+
+        <p>Short ID: {{ short_id }}</p>
+
+        <p>Creation Date: {{ creation_time }}</p>
+
+        <p>Expiration Date: {{ expiry_time }}</p>
+
+    </div>
+
+</body>
+
+</html>
