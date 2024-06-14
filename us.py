@@ -4,6 +4,10 @@ import datetime
 import random
 import string
 
+
+host_link = "https://api-grandma-phpu.onrender.com/"
+
+
 def init_routes(app):
 
     @app.route('/short', methods=['POST'])
@@ -36,7 +40,7 @@ def init_routes(app):
 
         response = {
             "status": 200,
-            "short_link": f"https://158.101.198.227:8398/{short_id}",
+            "short_link": f"{host_link}{short_id}",
             "id": short_id,
             "redirect_link": url,
             "making_date_time": creation_time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -73,7 +77,7 @@ def init_routes(app):
 
         response = {
             "status": 200,
-            "short_link": f"https://158.101.198.227:8398/{short_id}",
+            "short_link": f"{host_link}{short_id}",
             "id": short_id,
             "redirect_link": url,
             "making_date_time": creation_time.strftime("%Y-%m-%d %H:%M:%S"),
