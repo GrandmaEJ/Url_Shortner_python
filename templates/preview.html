@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Preview - {{ url_data.short_id }}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/preview.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 URL Preview</h1>
+            <a href="/" class="back-link">← Back to Shortener</a>
+        </div>
+
+        <div class="url-info-card">
+            <div class="url-header">
+                <h2>📋 URL Information</h2>
+                <div class="url-actions">
+                    <button onclick="copyToClipboard('{{ url_data.short_id }}')" class="btn-copy">📋 Copy ID</button>
+                    <button onclick="copyToClipboard('{{ config.BASE_URL }}/{{ url_data.short_id }}')" class="btn-copy">🔗 Copy Link</button>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>🔗 Short URL:</label>
+                    <div class="copyable">
+                        <input type="text" value="{{ config.BASE_URL }}/{{ url_data.short_id }}" readonly>
+                        <button onclick="copyToClipboard('{{ config.BASE_URL }}/{{ url_data.short_id }}')" class="btn-small">📋</button>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <label>🌐 Original URL:</label>
+                    <div class="copyable">
+                        <input type="text" value="{{ url_data.original_url }}" readonly>
+                        <a href="{{ url_data.original_url }}" target="_blank" class="btn-small">🔗</a>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <label>🏷️ Short ID:</label>
+                    <div class="copyable">
+                        <input type="text" value="{{ url_data.short_id }}" readonly>
+                        <button onclick="copyToClipboard('{{ url_data.short_id }}')" class="btn-small">📋</button>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <label>📅 Created:</label>
+                    <p>{{ url_data.creation_time }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>⏰ Expires:</label>
+                    <p class="expiry-status">{{ url_data.expiry_time }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>👆 Click Count:</label>
+                    <p class="click-count">{{ url_data.click_count }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if analytics %}
+        <div class="analytics-section">
+            <h2>📊 Analytics</h2>
+            <p>Analytics data available - Click count: {{ url_data.click_count }}</p>
+        </div>
+        {% else %}
+        <div class="no-analytics">
+            <p>📊 No analytics data available yet.</p>
+            <p>Click the link to start tracking!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('Copied to clipboard!');
+            });
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
