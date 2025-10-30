@@ -23,3 +23,53 @@
 2025-10-30 13:04:16,574 - url_shortener.services - ERROR - Error creating short URL: ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint
 2025-10-30 13:04:16,574 - root - ERROR - Error occurred: ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint
 2025-10-30 13:04:16,575 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:04:16] "[35m[1mPOST /api/short HTTP/1.1[0m" 500 -
+2025-10-30 13:06:04,439 - werkzeug - INFO -  * Detected change in '/home/grandpa/Desktop/SASS/Baby/Url_Shortner_python/url_shortener/models.py', reloading
+2025-10-30 13:06:04,544 - werkzeug - INFO -  * Restarting with stat
+2025-10-30 13:06:04,782 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:06:04,782 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:06:04,795 - werkzeug - WARNING -  * Debugger is active!
+2025-10-30 13:06:04,799 - werkzeug - INFO -  * Debugger PIN: 145-722-360
+2025-10-30 13:06:12,858 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:06:12] "[31m[1mPOST /api/short HTTP/1.1[0m" 400 -
+2025-10-30 13:06:22,939 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:06:22,939 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:07:42,416 - werkzeug - INFO -  * Detected change in '/home/grandpa/Desktop/SASS/Baby/Url_Shortner_python/url_shortener/routes.py', reloading
+2025-10-30 13:07:42,503 - werkzeug - INFO -  * Restarting with stat
+2025-10-30 13:07:42,737 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:07:42,737 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:07:42,754 - werkzeug - WARNING -  * Debugger is active!
+2025-10-30 13:07:42,757 - werkzeug - INFO -  * Debugger PIN: 145-722-360
+2025-10-30 13:09:10,535 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:09:10] "[31m[1mPOST /api/short HTTP/1.1[0m" 400 -
+2025-10-30 13:09:59,581 - werkzeug - INFO -  * Detected change in '/home/grandpa/Desktop/SASS/Baby/Url_Shortner_python/url_shortener/services.py', reloading
+2025-10-30 13:09:59,667 - werkzeug - INFO -  * Restarting with stat
+2025-10-30 13:09:59,914 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:09:59,914 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:09:59,932 - werkzeug - WARNING -  * Debugger is active!
+2025-10-30 13:09:59,935 - werkzeug - INFO -  * Debugger PIN: 145-722-360
+2025-10-30 13:10:13,893 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:10:13] "[31m[1mPOST /api/short HTTP/1.1[0m" 400 -
+2025-10-30 13:10:19,726 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:10:19] "[31m[1mPOST /api/short HTTP/1.1[0m" 400 -
+2025-10-30 13:10:30,402 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:10:30,402 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:10:30,478 - url_shortener.services - INFO - Created short URL: test123 for https://example.com/test-page
+2025-10-30 13:10:50,723 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:10:50,723 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:10:50,836 - url_shortener.services - INFO - Created short URL: test_123-abc for https://example.com/test3
+2025-10-30 13:11:46,258 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:11:46] "[31m[1mPOST /api/short HTTP/1.1[0m" 400 -
+2025-10-30 13:12:04,641 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:12:04,641 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:12:04,656 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://localhost:8000
+2025-10-30 13:12:04,657 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-30 13:12:04,658 - werkzeug - INFO -  * Restarting with stat
+2025-10-30 13:12:04,909 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:12:04,909 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:12:04,925 - werkzeug - WARNING -  * Debugger is active!
+2025-10-30 13:12:04,929 - werkzeug - INFO -  * Debugger PIN: 145-722-360
+2025-10-30 13:12:08,416 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:12:08] "[31m[1mPOST /api/short HTTP/1.1[0m" 400 -
+2025-10-30 13:12:14,850 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:12:14] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-10-30 13:12:14,862 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:12:14] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-10-30 13:12:17,231 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:12:17] "GET / HTTP/1.1" 200 -
+2025-10-30 13:12:17,291 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:12:17] "[33mGET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1[0m" 404 -
+2025-10-30 13:12:17,300 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:12:17] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-10-30 13:12:17,338 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:12:17] "[35m[1mGET /favicon.ico HTTP/1.1[0m" 204 -
+2025-10-30 13:12:28,318 - url_shortener.services - INFO - Created short URL: aca for https://movieflix-back.onrender.com
+2025-10-30 13:12:28,319 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:12:28] "POST /api/short HTTP/1.1" 200 -

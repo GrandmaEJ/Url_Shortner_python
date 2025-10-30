@@ -56,7 +56,8 @@ class URLModel:
                 ip_address TEXT NOT NULL,
                 endpoint TEXT NOT NULL,
                 request_count INTEGER DEFAULT 1,
-                window_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                window_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(ip_address, endpoint)
             )
         ''')
         
@@ -93,16 +94,25 @@ class URLModel:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            INSERT INTO urls (short_id, original_url, custom_id, expiry_time, 
-                            api_key, title, description, created_by_ip)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (short_id, original_url, custom_id, expiry_time.isoformat(), 
-              api_key, title, description, created_by_ip))
-        
-        url_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute('''
+                INSERT INTO urls (short_id, original_url, custom_id, expiry_time, 
+                                api_key, title, description, created_by_ip)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (short_id, original_url, custom_id, expiry_time.isoformat(), 
+                  api_key, title, description, created_by_ip))
+            
+            url_id = cursor.lastrowid
+            conn.commit()
+            
+        except sqlite3.IntegrityError as e:
+            conn.rollback()
+            raise ValueError(f"Database integrity error: {str(e)}")
+        except Exception as e:
+            conn.rollback()
+            raise Exception(f"Database error: {str(e)}")
+        finally:
+            conn.close()
         
         return self.get_url_by_id(url_id)
     
@@ -111,14 +121,19 @@ class URLModel:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT id, short_id, original_url, custom_id, creation_time, 
-                   expiry_time, click_count, is_active, api_key, title, description
-            FROM urls WHERE short_id = ? AND is_active = 1
-        ''', (short_id,))
-        
-        result = cursor.fetchone()
-        conn.close()
+        try:
+            cursor.execute('''
+                SELECT id, short_id, original_url, custom_id, creation_time, 
+                       expiry_time, click_count, is_active, api_key, title, description
+                FROM urls WHERE short_id = ? AND is_active = 1
+            ''', (short_id,))
+            
+            result = cursor.fetchone()
+        except Exception as e:
+            print(f"Database error in get_url_by_short_id: {e}")
+            result = None
+        finally:
+            conn.close()
         
         if result:
             return {
@@ -141,14 +156,19 @@ class URLModel:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT id, short_id, original_url, custom_id, creation_time, 
-                   expiry_time, click_count, is_active, api_key, title, description
-            FROM urls WHERE id = ? AND is_active = 1
-        ''', (url_id,))
-        
-        result = cursor.fetchone()
-        conn.close()
+        try:
+            cursor.execute('''
+                SELECT id, short_id, original_url, custom_id, creation_time, 
+                       expiry_time, click_count, is_active, api_key, title, description
+                FROM urls WHERE id = ? AND is_active = 1
+            ''', (url_id,))
+            
+            result = cursor.fetchone()
+        except Exception as e:
+            print(f"Database error in get_url_by_id: {e}")
+            result = None
+        finally:
+            conn.close()
         
         if result:
             return {
@@ -172,66 +192,77 @@ class URLModel:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # Update click count
-        cursor.execute('''
-            UPDATE urls SET click_count = click_count + 1 
-            WHERE short_id = ? AND is_active = 1
-        ''', (short_id,))
-        
-        # Log analytics
-        cursor.execute('''
-            INSERT INTO click_analytics (short_id, user_agent, referrer, ip_address)
-            VALUES (?, ?, ?, ?)
-        ''', (short_id, user_agent, referrer, ip_address))
-        
-        conn.commit()
-        conn.close()
+        try:
+            # Update click count
+            cursor.execute('''
+                UPDATE urls SET click_count = click_count + 1 
+                WHERE short_id = ? AND is_active = 1
+            ''', (short_id,))
+            
+            # Log analytics
+            cursor.execute('''
+                INSERT INTO click_analytics (short_id, user_agent, referrer, ip_address)
+                VALUES (?, ?, ?, ?)
+            ''', (short_id, user_agent, referrer, ip_address))
+            
+            conn.commit()
+            
+        except Exception as e:
+            print(f"Database error in increment_click_count: {e}")
+            conn.rollback()
+        finally:
+            conn.close()
     
     def get_analytics(self, short_id: str) -> Dict[str, Any]:
         """Get analytics for a short URL"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # Get basic URL info
-        url_info = self.get_url_by_short_id(short_id)
-        if not url_info:
+        try:
+            # Get basic URL info
+            url_info = self.get_url_by_short_id(short_id)
+            if not url_info:
+                return {}
+            
+            # Get click analytics
+            cursor.execute('''
+                SELECT DATE(click_time) as date, COUNT(*) as clicks
+                FROM click_analytics 
+                WHERE short_id = ? 
+                GROUP BY DATE(click_time)
+                ORDER BY date DESC
+                LIMIT 30
+            ''', (short_id,))
+            
+            daily_clicks = cursor.fetchall()
+            
+            cursor.execute('''
+                SELECT user_agent, COUNT(*) as clicks
+                FROM click_analytics 
+                WHERE short_id = ?
+                GROUP BY user_agent
+                ORDER BY clicks DESC
+                LIMIT 10
+            ''', (short_id,))
+            
+            user_agents = cursor.fetchall()
+            
+            cursor.execute('''
+                SELECT referrer, COUNT(*) as clicks
+                FROM click_analytics 
+                WHERE short_id = ? AND referrer != ''
+                GROUP BY referrer
+                ORDER BY clicks DESC
+                LIMIT 10
+            ''', (short_id,))
+            
+            referrers = cursor.fetchall()
+            
+        except Exception as e:
+            print(f"Database error in get_analytics: {e}")
             return {}
-        
-        # Get click analytics
-        cursor.execute('''
-            SELECT DATE(click_time) as date, COUNT(*) as clicks
-            FROM click_analytics 
-            WHERE short_id = ? 
-            GROUP BY DATE(click_time)
-            ORDER BY date DESC
-            LIMIT 30
-        ''', (short_id,))
-        
-        daily_clicks = cursor.fetchall()
-        
-        cursor.execute('''
-            SELECT user_agent, COUNT(*) as clicks
-            FROM click_analytics 
-            WHERE short_id = ?
-            GROUP BY user_agent
-            ORDER BY clicks DESC
-            LIMIT 10
-        ''', (short_id,))
-        
-        user_agents = cursor.fetchall()
-        
-        cursor.execute('''
-            SELECT referrer, COUNT(*) as clicks
-            FROM click_analytics 
-            WHERE short_id = ? AND referrer != ''
-            GROUP BY referrer
-            ORDER BY clicks DESC
-            LIMIT 10
-        ''', (short_id,))
-        
-        referrers = cursor.fetchall()
-        
-        conn.close()
+        finally:
+            conn.close()
         
         return {
             'url_info': url_info,
@@ -270,17 +301,23 @@ class URLModel:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        counter = 1
-        while True:
-            candidate_id = base_id + str(counter) if counter > 1 else base_id
-            
-            cursor.execute('SELECT 1 FROM urls WHERE short_id = ?', (candidate_id,))
-            if not cursor.fetchone():
-                break
-            
-            counter += 1
+        try:
+            counter = 1
+            while True:
+                candidate_id = base_id + str(counter) if counter > 1 else base_id
+                
+                cursor.execute('SELECT 1 FROM urls WHERE short_id = ?', (candidate_id,))
+                if not cursor.fetchone():
+                    break
+                
+                counter += 1
+        except Exception as e:
+            print(f"Database error in generate_short_id: {e}")
+            # Fallback to just base_id
+            candidate_id = base_id
+        finally:
+            conn.close()
         
-        conn.close()
         return candidate_id
     
     def cleanup_expired_urls(self) -> int:
@@ -288,49 +325,61 @@ class URLModel:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            UPDATE urls SET is_active = 0 
-            WHERE expiry_time < CURRENT_TIMESTAMP AND is_active = 1
-        ''')
-        
-        deleted_count = cursor.rowcount
-        conn.commit()
-        conn.close()
-        
-        return deleted_count
+        try:
+            cursor.execute('''
+                UPDATE urls SET is_active = 0 
+                WHERE expiry_time < CURRENT_TIMESTAMP AND is_active = 1
+            ''')
+            
+            deleted_count = cursor.rowcount
+            conn.commit()
+            return deleted_count
+            
+        except Exception as e:
+            print(f"Database error in cleanup_expired_urls: {e}")
+            conn.rollback()
+            return 0
+        finally:
+            conn.close()
     
     def get_all_urls(self, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
         """Get all active URLs with pagination"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute('''
-            SELECT id, short_id, original_url, custom_id, creation_time, 
-                   expiry_time, click_count, is_active, api_key, title, description
-            FROM urls 
-            WHERE is_active = 1
-            ORDER BY creation_time DESC
-            LIMIT ? OFFSET ?
-        ''', (limit, offset))
-        
-        results = []
-        for row in cursor.fetchall():
-            results.append({
-                'id': row[0],
-                'short_id': row[1],
-                'original_url': row[2],
-                'custom_id': row[3],
-                'creation_time': row[4],
-                'expiry_time': row[5],
-                'click_count': row[6],
-                'is_active': row[7],
-                'api_key': row[8],
-                'title': row[9],
-                'description': row[10]
-            })
-        
-        conn.close()
-        return results
+        try:
+            cursor.execute('''
+                SELECT id, short_id, original_url, custom_id, creation_time, 
+                       expiry_time, click_count, is_active, api_key, title, description
+                FROM urls 
+                WHERE is_active = 1
+                ORDER BY creation_time DESC
+                LIMIT ? OFFSET ?
+            ''', (limit, offset))
+            
+            results = []
+            for row in cursor.fetchall():
+                results.append({
+                    'id': row[0],
+                    'short_id': row[1],
+                    'original_url': row[2],
+                    'custom_id': row[3],
+                    'creation_time': row[4],
+                    'expiry_time': row[5],
+                    'click_count': row[6],
+                    'is_active': row[7],
+                    'api_key': row[8],
+                    'title': row[9],
+                    'description': row[10]
+                })
+            
+            return results
+            
+        except Exception as e:
+            print(f"Database error in get_all_urls: {e}")
+            return []
+        finally:
+            conn.close()
 
 
 class RateLimitModel:
@@ -345,32 +394,37 @@ class RateLimitModel:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # Clean old entries
-        window_start = datetime.datetime.now() - datetime.timedelta(minutes=window_minutes)
-        cursor.execute('DELETE FROM rate_limit WHERE window_start < ?', (window_start.isoformat(),))
-        
-        # Check current requests
-        cursor.execute('''
-            SELECT SUM(request_count) 
-            FROM rate_limit 
-            WHERE ip_address = ? AND endpoint = ? AND window_start >= ?
-        ''', (ip_address, endpoint, window_start.isoformat()))
-        
-        total_requests = cursor.fetchone()[0] or 0
-        
-        if total_requests >= max_requests:
+        try:
+            # Clean old entries
+            window_start = datetime.datetime.now() - datetime.timedelta(minutes=window_minutes)
+            cursor.execute('DELETE FROM rate_limit WHERE window_start < ?', (window_start.isoformat(),))
+            
+            # Check current requests
+            cursor.execute('''
+                SELECT SUM(request_count) 
+                FROM rate_limit 
+                WHERE ip_address = ? AND endpoint = ? AND window_start >= ?
+            ''', (ip_address, endpoint, window_start.isoformat()))
+            
+            total_requests = cursor.fetchone()[0] or 0
+            
+            if total_requests >= max_requests:
+                return True
+            
+            # Insert or update rate limit record
+            cursor.execute('''
+                INSERT OR REPLACE INTO rate_limit (ip_address, endpoint, request_count, window_start)
+                VALUES (?, ?, 
+                       COALESCE((SELECT request_count FROM rate_limit WHERE ip_address = ? AND endpoint = ?), 0) + 1, 
+                       ?)
+            ''', (ip_address, endpoint, ip_address, endpoint, datetime.datetime.now().isoformat()))
+            
+            conn.commit()
+            return False
+            
+        except Exception as e:
+            print(f"Database error in is_rate_limited: {e}")
+            # Don't rate limit on database errors
+            return False
+        finally:
             conn.close()
-            return True
-        
-        # Increment or insert rate limit record
-        cursor.execute('''
-            INSERT INTO rate_limit (ip_address, endpoint, request_count, window_start)
-            VALUES (?, ?, 1, ?)
-            ON CONFLICT(ip_address, endpoint) DO UPDATE SET 
-            request_count = request_count + 1
-        ''', (ip_address, endpoint, datetime.datetime.now().isoformat()))
-        
-        conn.commit()
-        conn.close()
-        
-        return False

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, abort
+from flask import Blueprint, render_template, request, jsonify, redirect, abort, send_from_directory
 from .services import URLService, AnalyticsService
 from .utils import get_client_ip, validate_required_fields
 
@@ -21,8 +21,36 @@ def preview_url(short_id):
     if not url_data:
         abort(404)
     
-    analytics = url_service.url_service.url_model.get_analytics(short_id)
+    analytics = url_service.url_model.get_analytics(short_id)
     return render_template('preview.html', url_data=url_data, analytics=analytics)
+
+
+@main_bp.route('/favicon.ico')
+def favicon():
+    """Serve favicon"""
+    try:
+        return send_from_directory('static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    except:
+        # Return a simple 204 response if favicon doesn't exist
+        return '', 204
+
+
+@main_bp.route('/robots.txt')
+def robots():
+    """Serve robots.txt"""
+    try:
+        return send_from_directory('static', 'robots.txt')
+    except:
+        return 'User-agent: *\nAllow: /', 200
+
+
+@main_bp.route('/sitemap.xml')
+def sitemap():
+    """Serve sitemap.xml"""
+    try:
+        return send_from_directory('static', 'sitemap.xml')
+    except:
+        return '', 404
 
 
 @main_bp.route('/admin/cleanup', methods=['POST'])
@@ -31,7 +59,7 @@ def cleanup_expired_urls():
     try:
         # Simple admin check (in production, implement proper authentication)
         admin_key = request.headers.get('X-Admin-Key')
-        if admin_key != url_service.config.ADMIN_KEY:
+        if admin_key != url_service.config['ADMIN_KEY']:
             return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
         
         result = url_service.cleanup_expired_urls(admin_key)
@@ -147,12 +175,60 @@ def redirect_to_url(short_id):
 # Error handlers
 @main_bp.errorhandler(404)
 def not_found(error):
+    # Check if this is a short URL that doesn't exist
+    from flask import request
+    if request.method == 'GET' and len(request.path.strip('/')) > 0:
+        return jsonify({
+            'status': 'error', 
+            'message': 'Short URL not found',
+            'code': 'URL_NOT_FOUND'
+        }), 404
+    
     return jsonify({'status': 'error', 'message': 'Not found'}), 404
+
+
+@main_bp.errorhandler(405)
+def method_not_allowed(error):
+    return jsonify({
+        'status': 'error', 
+        'message': 'Method not allowed',
+        'code': 'METHOD_NOT_ALLOWED'
+    }), 405
 
 
 @main_bp.errorhandler(500)
 def internal_error(error):
-    return jsonify({'status': 'error', 'message': 'Internal server error'}), 500
+    return jsonify({
+        'status': 'error', 
+        'message': 'Internal server error',
+        'code': 'INTERNAL_ERROR'
+    }), 500
+
+
+@main_bp.errorhandler(429)
+def rate_limit_exceeded(error):
+    return jsonify({
+        'status': 'error', 
+        'message': 'Rate limit exceeded. Please try again later.',
+        'code': 'RATE_LIMIT_EXCEEDED'
+    }), 429
+
+
+@main_bp.errorhandler(Exception)
+def handle_exception(error):
+    # Catch-all error handler for unhandled exceptions
+    import traceback
+    import logging
+    
+    # Log the error
+    logging.error(f"Unhandled exception: {str(error)}")
+    logging.error(traceback.format_exc())
+    
+    return jsonify({
+        'status': 'error', 
+        'message': 'An unexpected error occurred',
+        'code': 'UNEXPECTED_ERROR'
+    }), 500
 
 
 # Initialize services (will be set by app factory)
