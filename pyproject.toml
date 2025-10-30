@@ -1,0 +1,11 @@
+[project]
+name = "url-shortner-python"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.3.0",
+    "flask>=3.1.2",
+    "validators>=0.35.0",
+]

@@ -5,7 +5,10 @@ import json
 import validators
 from typing import Optional, Dict, List, Any
 
-class URLDatabase:
+
+class URLModel:
+    """Database model for URL shortening operations"""
+    
     def __init__(self, db_path: str = "url_shortener_v2.db"):
         self.db_path = db_path
         self.init_database()
@@ -56,6 +59,12 @@ class URLDatabase:
                 window_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        # Create indexes for better performance
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_short_id ON urls(short_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_creation_time ON urls(creation_time)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_click_analytics_short_id ON click_analytics(short_id)')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_rate_limit_ip ON rate_limit(ip_address, endpoint)')
         
         conn.commit()
         conn.close()
@@ -274,7 +283,7 @@ class URLDatabase:
         conn.close()
         return candidate_id
     
-    def cleanup_expired_urls(self):
+    def cleanup_expired_urls(self) -> int:
         """Remove expired URLs"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -324,7 +333,9 @@ class URLDatabase:
         return results
 
 
-class RateLimiter:
+class RateLimitModel:
+    """Database model for rate limiting operations"""
+    
     def __init__(self, db_path: str = "url_shortener_v2.db"):
         self.db_path = db_path
     

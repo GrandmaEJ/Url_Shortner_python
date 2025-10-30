@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import re
 from typing import Dict, Any, Optional
 from flask import request
 
@@ -31,55 +32,53 @@ def handle_errors(error: Exception) -> tuple:
     }, 500)
 
 
-def validate_url(url: str) -> bool:
-    """Validate URL format"""
-    import validators
-    return validators.url(url)
-
-
-def generate_short_id(url: str) -> str:
-    """Generate a short ID from URL (legacy function for compatibility)"""
-    import hashlib
-    return hashlib.md5(url.encode()).hexdigest()[:6]
-
-
-def format_datetime(dt: datetime.datetime) -> str:
-    """Format datetime for JSON response"""
-    return dt.strftime("%Y-%m-%d %H:%M:%S")
-
-
-def get_url_info_from_db(short_id: str, db) -> Optional[Dict[str, Any]]:
-    """Get URL information from database (legacy compatibility)"""
-    return db.get_url_by_short_id(short_id)
-
-
-def url_expired(expiry_time: str) -> bool:
-    """Check if URL has expired (legacy compatibility)"""
-    try:
-        expiry_dt = datetime.datetime.fromisoformat(expiry_time.replace('Z', '+00:00'))
-        return datetime.datetime.now() > expiry_dt
-    except:
-        return True
-
-
-def log_missing_params():
-    """Log missing parameters (legacy compatibility)"""
-    logging.warning(f"Missing parameters: {datetime.datetime.now()}")
-
-
-def load_data() -> Dict:
-    """Load data from JSON file (legacy compatibility)"""
-    try:
-        with open('data.json', 'r') as file:
-            return json.load(file)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
-
-
-def save_data(data: Dict):
-    """Save data to JSON file (legacy compatibility)"""
-    with open('data.json', 'w') as file:
-        json.dump(data, file, indent=2)
+class URLValidator:
+    """URL validation utilities"""
+    
+    @staticmethod
+    def is_valid_url(url: str) -> bool:
+        """Check if URL is valid"""
+        if not url or not isinstance(url, str):
+            return False
+        
+        try:
+            import validators
+            return validators.url(url)
+        except ImportError:
+            # Fallback validation if validators not available
+            url_pattern = re.compile(
+                r'^(?:http|https)://'  # http:// or https://
+                r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain...
+                r'localhost|'  # localhost...
+                r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+                r'(?::\d+)?'  # optional port
+                r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+            return url_pattern.match(url) is not None
+    
+    @staticmethod
+    def is_safe_url(url: str) -> bool:
+        """Check if URL is safe (not javascript:, data:, etc.)"""
+        if not url:
+            return False
+        
+        url_lower = url.lower().strip()
+        unsafe_protocols = ['javascript:', 'data:', 'vbscript:', 'file:', 'about:']
+        
+        return not any(url_lower.startswith(protocol) for protocol in unsafe_protocols)
+    
+    @staticmethod
+    def normalize_url(url: str) -> str:
+        """Normalize URL"""
+        if not url:
+            return ""
+        
+        url = url.strip()
+        
+        # Add protocol if missing
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        
+        return url
 
 
 def create_error_response(message: str, status_code: int = 400) -> tuple:
@@ -120,7 +119,6 @@ def is_valid_custom_id(custom_id: str) -> bool:
         return False
     
     # Check characters (alphanumeric and dashes/underscores only)
-    import re
     return bool(re.match(r'^[a-zA-Z0-9_-]+$', custom_id))
 
 
@@ -135,42 +133,44 @@ def get_request_info(request) -> Dict[str, str]:
     }
 
 
-class URLValidator:
-    """URL validation utilities"""
-    
-    @staticmethod
-    def is_valid_url(url: str) -> bool:
-        """Check if URL is valid"""
-        if not url or not isinstance(url, str):
-            return False
-        
-        import validators
-        return validators.url(url)
-    
-    @staticmethod
-    def is_safe_url(url: str) -> bool:
-        """Check if URL is safe (not javascript:, data:, etc.)"""
-        if not url:
-            return False
-        
-        url_lower = url.lower().strip()
-        unsafe_protocols = ['javascript:', 'data:', 'vbscript:', 'file:', 'about:']
-        
-        return not any(url_lower.startswith(protocol) for protocol in unsafe_protocols)
-    
-    @staticmethod
-    def normalize_url(url: str) -> str:
-        """Normalize URL"""
-        if not url:
-            return ""
-        
-        url = url.strip()
-        
-        # Add protocol if missing
-        if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
-        
-        return url
+def format_datetime(dt: datetime.datetime) -> str:
+    """Format datetime for JSON response"""
+    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def generate_short_id(url: str) -> str:
+    """Generate a short ID from URL (legacy function for compatibility)"""
+    import hashlib
+    return hashlib.md5(url.encode()).hexdigest()[:6]
+
+
+def url_expired(expiry_time: str) -> bool:
+    """Check if URL has expired (legacy compatibility)"""
+    try:
+        expiry_dt = datetime.datetime.fromisoformat(expiry_time.replace('Z', '+00:00'))
+        return datetime.datetime.now() > expiry_dt
+    except:
+        return True
+
+
+def log_missing_params():
+    """Log missing parameters (legacy compatibility)"""
+    logging.warning(f"Missing parameters: {datetime.datetime.now()}")
+
+
+def load_data() -> Dict:
+    """Load data from JSON file (legacy compatibility)"""
+    try:
+        with open('data.json', 'r') as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def save_data(data: Dict):
+    """Save data to JSON file (legacy compatibility)"""
+    with open('data.json', 'w') as file:
+        json.dump(data, file, indent=2)
 
 
 class AnalyticsHelper:
@@ -211,3 +211,18 @@ class AnalyticsHelper:
             return "Tablet"
         else:
             return "Desktop"
+
+
+def validate_required_fields(data: Dict[str, Any], required_fields: list) -> Optional[tuple]:
+    """Validate required fields in data"""
+    missing_fields = []
+    for field in required_fields:
+        if field not in data or not data[field]:
+            missing_fields.append(field)
+    
+    if missing_fields:
+        return create_error_response(
+            f'Missing required fields: {", ".join(missing_fields)}', 
+            400
+        )
+    return None

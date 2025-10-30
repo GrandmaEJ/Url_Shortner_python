@@ -1,0 +1,25 @@
+2025-10-30 13:02:51,618 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:02:51,618 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:08,770 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:08,770 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:08,777 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:08,777 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:08,777 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:08,777 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:39,097 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:39,097 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:39,146 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://localhost:8000
+2025-10-30 13:03:39,146 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-10-30 13:03:39,155 - werkzeug - INFO -  * Restarting with stat
+2025-10-30 13:03:39,497 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:39,497 - url_shortener.app - INFO - URL Shortener v2.0 initialized successfully
+2025-10-30 13:03:39,530 - werkzeug - WARNING -  * Debugger is active!
+2025-10-30 13:03:39,553 - werkzeug - INFO -  * Debugger PIN: 145-722-360
+2025-10-30 13:04:01,924 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:04:01] "GET / HTTP/1.1" 200 -
+2025-10-30 13:04:02,053 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:04:02] "GET /static/css/styles.css HTTP/1.1" 200 -
+2025-10-30 13:04:02,217 - url_shortener.services - WARNING - Short URL not found: favicon.ico
+2025-10-30 13:04:02,218 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:04:02] "GET /favicon.ico HTTP/1.1" 200 -
+2025-10-30 13:04:16,574 - url_shortener.services - ERROR - Error creating short URL: ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint
+2025-10-30 13:04:16,574 - root - ERROR - Error occurred: ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint
+2025-10-30 13:04:16,575 - werkzeug - INFO - 127.0.0.1 - - [30/Oct/2025 13:04:16] "[35m[1mPOST /api/short HTTP/1.1[0m" 500 -
