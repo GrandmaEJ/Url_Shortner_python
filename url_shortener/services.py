@@ -222,7 +222,8 @@ class URLService:
             return True  # Empty is valid (will auto-generate)
         
         # Check length
-        if len(custom_id) < 3 or len(custom_id) > self.config['MAX_CUSTOM_ID_LENGTH']:
+        max_length = self.config.get('MAX_CUSTOM_ID_LENGTH', 20)
+        if len(custom_id) < 3 or len(custom_id) > max_length:
             return False
         
         # Check characters (alphanumeric and dashes/underscores only)
